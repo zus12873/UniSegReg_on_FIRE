@@ -21,7 +21,13 @@ class JointSegModel(BaseModel):
         self.loss_function = loss_functions
 
     def predict(self, batch):
-        img = batch[self.img_suffix].to(self.device)
+        img = batch[self.img_suffix]
+        
+        # 使用修复函数处理张量格式
+        from fix_tensor_format import fix_tensor_format
+        img = fix_tensor_format(img)
+        
+        img = img.to(self.device)
         self.net.eval()
         with torch.no_grad():
             logits = self.net(img)
@@ -31,6 +37,11 @@ class JointSegModel(BaseModel):
 
     def train_step(self, batch, epoch):
         img = batch[self.img_suffix]
+        
+        # 使用修复函数处理张量格式
+        from fix_tensor_format import fix_tensor_format
+        img = fix_tensor_format(img)
+        
         img = img.to(device=self.device)
 
         self.net.train()
@@ -62,6 +73,11 @@ class JointSegModel(BaseModel):
 
         img = batch[self.img_suffix]
         lab = batch[self.lab_suffix]
+        
+        # 使用修复函数处理张量格式
+        from fix_tensor_format import fix_tensor_format
+        img = fix_tensor_format(img)
+        
         img_g = img.to(device=self.device)
         lab_g = lab.to(device=self.device)
 

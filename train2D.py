@@ -17,16 +17,17 @@ from snmi._custom.quality_assessment_float import QualityAssessment
 from models import JointSegModel, JointRegModel
 
 import sys
+from fix_tensor_format import fix_tensor_format  # 导入修复函数
 
 # Set up paths for dataset
-PATH_TO_2D_DATASET = "PATH_TO_2D_DATASET"  # Replace with actual path to 2D dataset
+PATH_TO_2D_DATASET = "FIRE"  # Replace with actual path to 2D dataset
 
 
 class cfg:
     data_path = PATH_TO_2D_DATASET  # Brain MRI 2D dataset
     output_path = './results_2D'
 
-    test_only = True
+    test_only = False
     test_pre_seg = True
     test_pre_reg = False
     test_seg = True
@@ -34,9 +35,9 @@ class cfg:
     # pre_training parameters
     pre_train_seg = True
     pre_train_reg = False
-    pre_seg_ep = 500
+    pre_seg_ep = 50
     pre_seg_lr = 1e-4
-    pre_seg_eval_frequency = 20
+    pre_seg_eval_frequency = 5
     pre_seg_loss = {LF.SoftDice(): 0.5, LF.CrossEntropy(): 0.5}
 
     pre_reg_ep = 200
@@ -53,10 +54,10 @@ class cfg:
     # iterative
     iters_start = 0
     iters = 10
-    min_good = 600
+    min_good = 37
     threshold_dice = 0.9
     threshold_dice_min = 0.2
-    num_source = 480
+    num_source = 150
     num_assessment = 5
 
 
@@ -95,9 +96,9 @@ class cfg:
     source_key = 'source'
     target_key = 'target'
 
-    pre = {img_suffix: [P.min_max, P.ExpandDim(0)],
+    pre = {img_suffix: [P.min_max, P.ToTensor(0)],
         lab_suffix: [P.OneHot([0,255])],
-        weight_suffix: [lambda img: np.array(img > 0.5, np.float32), P.ExpandDim(0)]}
+        weight_suffix: [lambda img: np.array(img > 0.5, np.float32), P.ToTensor(0)]}
 
 # Data
 train = glob.glob(cfg.data_path + '/train/*org.tif')
@@ -193,7 +194,7 @@ trainer_reg = Trainer(model_reg)
 # Assessment initialization
 count_good = 0
 assessment = QualityAssessment(model_seg, model_reg)
-ass_pre = {cfg.img_suffix: [P.min_max, P.ExpandDim(0), P.ToTensor(0)],
+ass_pre = {cfg.img_suffix: [P.min_max, P.ToTensor(0)],
             cfg.lab_suffix: [P.ToTensor(0)]}
 target_set = SegRegDataset(source, target_train, cfg.source_key, cfg.target_key, [cfg.img_suffix, cfg.lab_suffix], ass_pre, is_assessment=True, num_assessment=cfg.num_assessment)
 if cfg.iters_start == 0:

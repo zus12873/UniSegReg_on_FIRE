@@ -1,0 +1,11 @@
+FIRE.7z
+FIRE/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+__pycache__/
+venv
+.DS_Store
+results*/
